@@ -1,6 +1,6 @@
 <template>
-  <div id="app">
-    <div class="App">
+  <div id="app" ref="chatContainer">
+    <div class="App" ref="chatContent">
       <div class="menu-button" @click="toggleMenu">
         <div class="menu-line"></div>
         <div class="menu-line"></div>
@@ -8,32 +8,79 @@
       </div>
       <div v-if="menuOpen" class="menu">Menu Content Here</div>
       <div class="profile-picture"></div>
-      <div class="text-area">
-        <p>Text Line 1</p>
-        <p>Text Line 2</p>
+      <div class="text-area" ref="chatMessages">
+        <p v-for="response in responses" :key="response.id">{{ response.text }}</p>
       </div>
+    </div>
+    <div class="chat-input">
       <input
+        ref="inputField"
         class="text-box"
         type="text"
         v-model="inputValue"
+        @keyup.enter="sendMessage"
+        :disabled="sendingMessage"
+        placeholder="Type your message here..."
       />
     </div>
   </div>
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   name: 'App',
   data() {
     return {
       menuOpen: false,
-      inputValue: ''
+      inputValue: '',
+      responses: [],
+      sendingMessage: false,
+      geminiApiEndpoint: 'YOUR_GEMINI_API_ENDPOINT'
     };
   },
   methods: {
     toggleMenu() {
       this.menuOpen = !this.menuOpen;
+    },
+    sendMessage() {
+      if (this.inputValue.trim() === '') {
+        return;
+      }
+
+      this.sendingMessage = true;
+
+      const message = this.inputValue;
+      const response = { id: Date.now(), text: `You: ${message}` };
+      this.responses.push(response);
+      this.inputValue = '';
+
+      axios.post(this.geminiApiEndpoint, {
+        message: message
+      })
+      .then((res) => {
+        const apiResponse = { id: Date.now(), text: `Gemini: ${res.data}` };
+        this.responses.push(apiResponse);
+        this.sendingMessage = false;
+        this.$nextTick(() => {
+          this.$refs.inputField.focus(); // Keep the input field focused after sending message
+          this.scrollToBottom(); // Scroll to bottom after receiving response
+        });
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+        this.sendingMessage = false;
+      });
+    },
+    scrollToBottom() {
+      const chatContainer = this.$refs.chatContainer;
+      const chatContent = this.$refs.chatContent;
+      chatContainer.scrollTop = chatContent.offsetHeight - chatContainer.clientHeight;
     }
+  },
+  mounted() {
+    this.scrollToBottom();
   }
 };
 </script>
@@ -121,5 +168,12 @@ body {
   box-sizing: border-box;
   margin-top: 20px;
   font-size: 16px;
+}
+.chat-input {
+  position: fixed;
+  bottom: 20px; /* Adjust the distance from the bottom as needed */
+  left: 0;
+  width: 100%;
+  text-align: center;
 }
 </style>
