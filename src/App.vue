@@ -133,7 +133,7 @@ body {
   position: absolute;
   bottom: 0%;
   left: 0;
-  width: 200px;
+  width: 20%;
   height: 95%;
   background-color: #2a2a2a;
   z-index: 5;
