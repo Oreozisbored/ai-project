@@ -145,9 +145,13 @@ body {
   position: absolute;
   top: 0.916666666667%;
   right: 0.5%;
-  width: 35px;
-  height: 35px;
-  background-color: #8a2be2;
+  width: 50px;
+  height: 50px;
+  display: inline-block;
+  background-image: url("test.png");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
   border-radius: 45%;
 }
 
