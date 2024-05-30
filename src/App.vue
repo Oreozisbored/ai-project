@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 
 export default {
   name: 'App',
@@ -37,14 +37,40 @@ export default {
       inputValue: '',
       responses: [],
       sendingMessage: false,
-      geminiApiEndpoint: 'YOUR_GEMINI_API_ENDPOINT'
+      genAI: null,
+      model: null,
+      generationConfig: {
+        temperature: 1,
+        topP: 0.95,
+        topK: 64,
+        maxOutputTokens: 8192,
+        responseMimeType: "text/plain",
+      },
+      safetySettings: [
+        {
+          category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+          threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+        },
+        {
+          category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+          threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+        },
+        {
+          category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+          threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+        },
+        {
+          category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+          threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+        },
+      ],
     };
   },
   methods: {
     toggleMenu() {
       this.menuOpen = !this.menuOpen;
     },
-    sendMessage() {
+    async sendMessage() {
       if (this.inputValue.trim() === '') {
         return;
       }
@@ -56,22 +82,27 @@ export default {
       this.responses.push(response);
       this.inputValue = '';
 
-      axios.post(this.geminiApiEndpoint, {
-        message: message
-      })
-      .then((res) => {
-        const apiResponse = { id: Date.now(), text: `Gemini: ${res.data}` };
+      try {
+        const chatSession = this.model.startChat({
+          generationConfig: this.generationConfig,
+          safetySettings: this.safetySettings,
+          history: [
+            { role: 'user', parts: [{ text: message }] },
+          ],
+        });
+
+        const result = await chatSession.sendMessage(message);
+        const apiResponse = { id: Date.now(), text: `Gemini: ${await result.response.text()}` };
         this.responses.push(apiResponse);
+      } catch (error) {
+        console.error('Error:', error);
+      } finally {
         this.sendingMessage = false;
         this.$nextTick(() => {
-          this.$refs.inputField.focus(); // Keep the input field focused after sending message
-          this.scrollToBottom(); // Scroll to bottom after receiving response
+          this.$refs.inputField.focus();
+          this.scrollToBottom();
         });
-      })
-      .catch((error) => {
-        console.error('Error:', error);
-        this.sendingMessage = false;
-      });
+      }
     },
     scrollToBottom() {
       const chatContainer = this.$refs.chatContainer;
@@ -79,7 +110,14 @@ export default {
       chatContainer.scrollTop = chatContent.offsetHeight - chatContainer.clientHeight;
     }
   },
-  mounted() {
+  async mounted() {
+    const apiKey = process.env.VUE_APP_GEMINI_API_KEY; // Ensure your API key is stored in an environment variable
+    this.genAI = new GoogleGenerativeAI(apiKey);
+    this.model = this.genAI.getGenerativeModel({
+      model: "gemini-1.5-flash",
+      systemInstruction: `Your primary function is to serve as an educational assistant for students in middle school (5th grade) and above. ...`,
+    });
+
     this.scrollToBottom();
   }
 };
