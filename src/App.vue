@@ -43,8 +43,7 @@ export default {
         temperature: 1,
         topP: 0.95,
         topK: 64,
-        maxOutputTokens: 8192,
-        responseMimeType: "text/plain",
+        maxOutputTokens: 8192
       },
       safetySettings: [
         {
@@ -86,9 +85,10 @@ export default {
         const chatSession = this.model.startChat({
           generationConfig: this.generationConfig,
           safetySettings: this.safetySettings,
-          history: [
-            { role: 'user', parts: [{ text: message }] },
-          ],
+          history: this.responses.map(response => ({
+            role: 'user',
+            parts: [{ text: response.text.slice(5) }] // Removing "You: " from the message
+          }))
         });
 
         const result = await chatSession.sendMessage(message);
@@ -105,23 +105,30 @@ export default {
       }
     },
     scrollToBottom() {
-      const chatContainer = this.$refs.chatContainer;
-      const chatContent = this.$refs.chatContent;
-      chatContainer.scrollTop = chatContent.offsetHeight - chatContainer.clientHeight;
+      this.$nextTick(() => {
+        const chatContainer = this.$refs.chatContainer;
+        const chatContent = this.$refs.chatContent;
+        chatContainer.scrollTop = chatContent.scrollHeight - chatContainer.clientHeight;
+      });
     }
   },
   async mounted() {
-    const apiKey = process.env.VUE_APP_GEMINI_API_KEY; // Ensure your API key is stored in an environment variable
+    const apiKey = process.env.VUE_APP_GEMINI_API_KEY;
     this.genAI = new GoogleGenerativeAI(apiKey);
     this.model = this.genAI.getGenerativeModel({
       model: "gemini-1.5-flash",
       systemInstruction: `Your primary function is to serve as an educational assistant for students in middle school (5th grade) and above. ...`,
+      history: this.responses.map(response => ({
+        role: 'user',
+        parts: [{ text: response.text.slice(5) }] // Removing "You: " from the message
+      }))
     });
 
     this.scrollToBottom();
   }
 };
 </script>
+
 
 <style>
 * {
