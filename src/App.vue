@@ -6,7 +6,7 @@
         <div class="menu-line"></div>
         <div class="menu-line"></div>
       </div>
-      <div v-if="menuOpen" class="menu">Menu Content Here</div>
+      <div v-if="menuOpen" class="menu">Made by Wilson Li :)</div>
       <div class="profile-picture"></div>
       <div class="text-area" ref="chatMessages">
         <p v-for="response in responses" :key="response.id">{{ response.text }}</p>
