@@ -193,7 +193,7 @@ body {
   width: 50px;
   height: 50px;
   display: inline-block;
-  background-image: url("test3.png");
+  background-image: url("test1.png");
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
