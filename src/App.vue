@@ -7,7 +7,12 @@
         <div class="menu-line"></div>
       </div>
       <div v-if="menuOpen" class="menu">Made by Wilson Li :)</div>
-      <div class="profile-picture"></div>
+      <div class="profile-section">
+        <select class="grade-dropdown">
+          <option v-for="grade in grades" :key="grade" :value="grade">{{ grade }}th Grade</option>
+        </select>
+        <div class="profile-picture"></div>
+      </div>
       <div class="text-area" ref="chatMessages">
         <div v-for="response in responses" :key="response.id" :class="isUserMessage(response.text) ? 'user-message' : 'ai-message'">
           <p>{{ response.text }}</p>
@@ -41,6 +46,7 @@ export default {
       sendingMessage: false,
       genAI: null,
       model: null,
+      grades: [5, 6, 7, 8, 9, 10, 11, 12],
       generationConfig: {
         temperature: 1,
         topP: 0.95,
@@ -117,7 +123,7 @@ export default {
     }
   },
   async mounted() {
-    const apiKey = process.env.VUE_APP_GEMINI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     this.genAI = new GoogleGenerativeAI(apiKey);
     this.model = this.genAI.getGenerativeModel({
       model: "gemini-1.5-flash",
@@ -240,120 +246,133 @@ By adhering to these strict guidelines, you will fulfill your purpose as a valua
 
 <style>
   * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
   }
   
   body {
-  background-color: #1e1e1e;
-  color: #c5a3ff;
-  font-family: Arial, sans-serif;
+    background-color: #1e1e1e;
+    color: #c5a3ff;
+    font-family: Arial, sans-serif;
   }
   
   #app {
-  height: 100vh;
+    height: 100vh;
   }
   
   .App {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  width: 100%;
-  background-color: #310033;
-  color: #c5a3ff;
-  position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+    background-color: #310033;
+    color: #c5a3ff;
+    position: relative;
   }
   
   .menu-button {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  cursor: pointer;
-  z-index: 10;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    cursor: pointer;
+    z-index: 10;
   }
   
   .menu-line {
-  width: 30px;
-  height: 3px;
-  background-color: #c5a3ff;
-  margin: 5px 0;
+    width: 30px;
+    height: 3px;
+    background-color: #c5a3ff;
+    margin: 5px 0;
   }
   
   .menu {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 20%;
-  height: 95%;
-  background-color: #2a2a2a;
-  z-index: 5;
-  color: #c5a3ff;
-  padding: 20px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 20%;
+    height: 95%;
+    background-color: #2a2a2a;
+    z-index: 5;
+    color: #c5a3ff;
+    padding: 20px;
   }
   
+  .profile-section {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    align-items: center;
+  }
+
+  .grade-dropdown {
+    margin-right: 10px;
+    padding: 5px;
+    border: 1px solid #c5a3ff;
+    background-color: #2a2a2a;
+    color: #c5a3ff;
+    border-radius: 5px;
+  }
+
   .profile-picture {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 50px;
-  height: 50px;
-  display: inline-block;
-  background-image: url("test1.png");
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: cover;
-  border-radius: 40%;
+    width: 50px;
+    height: 50px;
+    display: inline-block;
+    background-image: url("test1.png");
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+    border-radius: 40%;
   }
   
   .text-area {
-  margin-top: 100px;
-  justify-content: center;
-  color: #c5a3ff;
-  overflow-y: auto;
-  height: calc(100vh - 160px); /* Adjust according to header/footer height */
-  width: 100%;
-  padding: 20px;
-  box-sizing: border-box;
+    margin-top: 100px;
+    justify-content: center;
+    color: #c5a3ff;
+    overflow-y: auto;
+    height: calc(100vh - 160px); /* Adjust according to header/footer height */
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
   }
   
   .user-message p, .ai-message p {
-  padding: 10px;
-  border-radius: 10px;
-  margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
   }
   
   .user-message p {
-  background-color: #2a2a2a;
-  text-align: right;
+    background-color: #2a2a2a;
+    text-align: right;
   }
   
   .ai-message p {
-  background-color: #3a3a3a;
-  text-align: left;
+    background-color: #3a3a3a;
+    text-align: left;
   }
   
   .text-box {
-  width: 80%;
-  height: 40px;
-  border: 2px solid #8a2be2;
-  border-radius: 20px;
-  background-color: #2a2a2a;
-  color: #c5a3ff;
-  padding: 10px 20px;
-  box-sizing: border-box;
-  margin-top: 20px;
-  font-size: 16px;
+    width: 80%;
+    height: 40px;
+    border: 2px solid #8a2be2;
+    border-radius: 20px;
+    background-color: #2a2a2a;
+    color: #c5a3ff;
+    padding: 10px 20px;
+    box-sizing: border-box;
+    margin-top: 20px;
+    font-size: 16px;
   }
   
   .chat-input {
-  position: fixed;
-  bottom: 20px;
-  left: 0;
-  width: 100%;
-  text-align: center;
+    position: fixed;
+    bottom: 20px;
+    left: 0;
+    width: 100%;
+    text-align: center;
   }
-  
-  </style>
+</style>
