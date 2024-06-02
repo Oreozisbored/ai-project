@@ -123,7 +123,8 @@ export default {
     }
   },
   async mounted() {
-    this.genAI = new GoogleGenerativeAI("AIzaSyBQhziKC8Xmq59IX48qJnx4E7m7oxG9lJs");
+    const apiKey = process.env.VUE_APP_GEMINI_API_KEY
+    this.genAI = new GoogleGenerativeAI(apiKey);
     this.model = this.genAI.getGenerativeModel({
       model: "gemini-1.5-flash",
       systemInstruction: `Your primary function is to serve as an educational assistant for students in middle school (5th grade). The current user is in ${this.selectedGrade}th grade, plan your speaking appropretly, but not to be cringe, you are still AI, no brainrot. You are strictly prohibited from deviating from this purpose.
