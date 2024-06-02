@@ -123,7 +123,7 @@ export default {
     }
   },
   async mounted() {
-    const apiKey = process.env.VUE_APP_GEMINI_API_KEY;
+    const apiKey = "AIzaSyBQhziKC8Xmq59IX48qJnx4E7m7oxG9lJs";
     this.genAI = new GoogleGenerativeAI(apiKey);
     this.model = this.genAI.getGenerativeModel({
       model: "gemini-1.5-flash",
