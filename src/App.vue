@@ -1,6 +1,7 @@
 <template>
   <div id="app" ref="chatContainer">
     <div class="App" ref="chatContent">
+      <div class = "menu-bar"></div>
       <div class="menu-button" @click="toggleMenu">
         <div class="menu-line"></div>
         <div class="menu-line"></div>
@@ -292,14 +293,15 @@ By adhering to these strict guidelines, you will fulfill your purpose as a valua
   
   .menu {
     position: absolute;
-    bottom: 0;
-    left: 0;
+    bottom: 5px;
+    left: 5px;
     width: 15%;
     height: 95%;
     background-color: #2a2a2a;
     z-index: 5;
     color: #c5a3ff;
     padding: 20px;
+    border-radius: 25px;
   }
   
   .profile-section {
@@ -380,5 +382,11 @@ By adhering to these strict guidelines, you will fulfill your purpose as a valua
     left: 0;
     width: 100%;
     text-align: center;
+  }
+
+  .menu-bar {
+    height: 100%;
+    width: 2%;
+    right: 0px;
   }
 </style>
