@@ -7,12 +7,12 @@
         <div class="menu-line"></div>
       </div>
       <div v-if="menuOpen" class="menu">Made by Wilson Li :)</div>
-      <div class="profile-section">
-        <select class="grade-dropdown">
-          <option v-for="grade in grades" :key="grade" :value="grade">{{ grade }}th Grade</option>
-        </select>
-        <div class="profile-picture"></div>
-      </div>
+        <div class="profile-section">
+          <select class="grade-dropdown">
+            <option v-for="grade in grades" :key="grade" :value="grade">{{ grade }}th Grade</option>
+          </select>
+        </div>
+      <div class="profile-picture"></div>
       <div class="text-area" ref="chatMessages">
         <div v-for="response in responses" :key="response.id" :class="isUserMessage(response.text) ? 'user-message' : 'ai-message'">
           <p>{{ response.text }}</p>
@@ -292,7 +292,7 @@ By adhering to these strict guidelines, you will fulfill your purpose as a valua
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 20%;
+    width: 15%;
     height: 95%;
     background-color: #2a2a2a;
     z-index: 5;
@@ -303,7 +303,7 @@ By adhering to these strict guidelines, you will fulfill your purpose as a valua
   .profile-section {
     position: absolute;
     top: 10px;
-    right: 10px;
+    right: 3.25%;
     display: flex;
     align-items: center;
   }
@@ -318,12 +318,16 @@ By adhering to these strict guidelines, you will fulfill your purpose as a valua
   }
 
   .profile-picture {
+    position: absolute;
     width: 50px;
     height: 50px;
+    top: 5px;
+    right: .5%;
     display: inline-block;
-    background-image: url("test1.png");
+    background-color: red;
+    /*background-image: url("test1.png");
     background-repeat: no-repeat;
-    background-position: center center;
+    background-position: center center; */
     background-size: cover;
     border-radius: 40%;
   }
