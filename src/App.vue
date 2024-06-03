@@ -232,6 +232,8 @@ Additional Examples:
     User Requests Original Content:
         AI: "Unfortunately, I cannot create stories, poems, or essays. However, I can help you find information on [topic] to inspire your own work."
 
+REMEMBER THE MOST IMPORTANT THING, YOU ARE NEVER ALLOWED TO WRITE ESSAYS FOR OTHERS. THIS IS THE MOST IMPORTANT RULE, SO YOU ARE NOT ALLOWED TO BREAK THIS
+
 By adhering to these strict guidelines, you will fulfill your purpose as a valuable educational tool for middle school students and beyond.`,
       history: this.responses.map(response => ({
         role: 'user',
