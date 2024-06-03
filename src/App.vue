@@ -342,7 +342,7 @@ By adhering to these strict guidelines, you will fulfill your purpose as a valua
   .user-message p, .ai-message p {
     padding: 10px;
     border-radius: 10px;
-    margin-bottom: 10px;
+    margin-bottom: 25px;
   }
   
   .user-message p {
