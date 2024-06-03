@@ -4,11 +4,12 @@
     "ignore": [
       "firebase.json",
       "**/.*",
+      ".env",
       "**/node_modules/**"
     ],
     "rewrites": [
       {
-        "source": "**",
+        "source": "!/@(js|css|img|fonts|media)/**",
         "destination": "/index.html"
       }
     ]
