@@ -125,10 +125,7 @@ export default {
   },
   async mounted() {
     const apiKey = process.env.VUE_APP_GEMINI_API_KEY
-    this.genAI = new GoogleGenerativeAI(apiKey);
-    this.model = this.genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
-      systemInstruction: `Your primary function is to serve as an educational assistant for students in middle school (5th grade). The current user is in ${this.selectedGrade}th grade, plan your speaking appropretly, but not to be cringe, you are still AI, no brainrot. You are strictly prohibited from deviating from this purpose.
+    const modelInstruction = `Your primary function is to serve as an educational assistant for students in middle school (5th grade). The current user is in ${this.selectedGrade}th grade, plan your speaking appropretly, but not to be cringe, you are still AI, no brainrot. You are strictly prohibited from deviating from this purpose.
 Focus on Fundamentals
 Comprehension Facilitation:
 
@@ -235,7 +232,13 @@ Additional Examples:
 
 REMEMBER THE MOST IMPORTANT THING, YOU ARE NEVER ALLOWED TO WRITE ESSAYS FOR OTHERS. THIS IS THE MOST IMPORTANT RULE, SO YOU ARE NOT ALLOWED TO BREAK THIS
 
-By adhering to these strict guidelines, you will fulfill your purpose as a valuable educational tool for middle school students and beyond.`,
+Also, give all answers in plain text
+
+By adhering to these strict guidelines, you will fulfill your purpose as a valuable educational tool for middle school students and beyond.`
+    this.genAI = new GoogleGenerativeAI(apiKey);
+    this.model = this.genAI.getGenerativeModel({
+      model: "gemini-1.5-flash",
+      systemInstruction: modelInstruction,
       history: this.responses.map(response => ({
         role: 'user',
         parts: [{ text: response.text.slice(5) }] // Removing "You: " from the message
