@@ -57,19 +57,19 @@ export default {
       safetySettings: [
         {
           category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-          threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+          threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
         },
         {
           category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-          threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+          threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
         },
         {
           category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-          threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+          threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
         },
         {
           category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-          threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+          threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
         },
       ],
     };
@@ -266,6 +266,10 @@ By adhering to these strict guidelines, you will fulfill your purpose as a valua
   #app {
     height: 100vh;
   }
+
+  :root {
+    --border: #670060
+  }
   
   .App {
     display: flex;
@@ -274,7 +278,7 @@ By adhering to these strict guidelines, you will fulfill your purpose as a valua
     justify-content: center;
     height: 100%;
     width: 100%;
-    background-color: #310033;
+    background-color: #150016;
     color: #c5a3ff;
     position: relative;
   }
@@ -318,7 +322,7 @@ By adhering to these strict guidelines, you will fulfill your purpose as a valua
   .grade-dropdown {
     margin-right: 10px;
     padding: 5px;
-    border: 1px solid #c5a3ff;
+    border: 1px solid var(--border);
     background-color: #2a2a2a;
     color: #c5a3ff;
     border-radius: 5px;
@@ -342,10 +346,11 @@ By adhering to these strict guidelines, you will fulfill your purpose as a valua
   .text-area {
     margin-top: 100px;
     justify-content: center;
-    color: #c5a3ff;
+    color: #ffffff;
     overflow-y: auto;
     height: calc(100vh - 160px); /* Adjust according to header/footer height */
     width: 100%;
+    height: 100%;
     padding: 20px;
     box-sizing: border-box;
   }
@@ -354,6 +359,7 @@ By adhering to these strict guidelines, you will fulfill your purpose as a valua
     padding: 10px;
     border-radius: 10px;
     margin-bottom: 25px;
+    border: 3px solid var(--border);
   }
   
   .user-message p {
@@ -369,7 +375,7 @@ By adhering to these strict guidelines, you will fulfill your purpose as a valua
   .text-box {
     width: 80%;
     height: 40px;
-    border: 2px solid #8a2be2;
+    border: 2px solid var(--border);
     border-radius: 20px;
     background-color: #2a2a2a;
     color: #c5a3ff;
