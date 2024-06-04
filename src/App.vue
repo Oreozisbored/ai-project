@@ -249,7 +249,8 @@ export default {
     color: #ffffff;
     overflow-y: auto;
     height: calc(100vh - 160px); /* Adjust according to header/footer height */
-    width: 100%;
+    width: 95%;
+    right: 2.5%;
     padding: 20px;
     box-sizing: border-box;
   }
