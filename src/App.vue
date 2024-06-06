@@ -236,7 +236,7 @@ export default {
     width: 37px;
     height: 37px;
     top: 5px;
-    right: .5%;
+    right: .75%;
     display: inline-block;
     background-color: red;
     background-size: cover;
