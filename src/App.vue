@@ -251,7 +251,7 @@ export default {
 
   .menu {
     position: fixed;
-    top: 50%;
+    top: 40%;
     left: 50%;
     transform: translate(-50%, -50%);
     background-color: #1f0020;
@@ -259,6 +259,8 @@ export default {
     border-radius: 30px;
     padding: 20px;
     z-index: 1000;
+    width: 40%;
+    height: 40%;
   }
 
   .text-area {
