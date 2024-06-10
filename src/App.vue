@@ -14,7 +14,8 @@
           <option v-for="grade in grades" :key="grade" :value="grade">{{ grade }}th Grade</option>
         </select>
       </div>
-      <div class="profile-picture"></div>
+      <div class="profile-picture" @click="toggleProfileMenu"></div>
+      <div v-if="profileMenuOpen" class="menu">Profile Menu Content</div>
       <div class="text-area" ref="chatMessages">
         <div v-for="response in responses" :key="response.id" :class="isUserMessage(response.text) ? 'user-message' : 'ai-message'">
           <p>{{ response.text }}</p>
@@ -43,6 +44,7 @@ export default {
   data() {
     return {
       menuOpen: false,
+      profileMenuOpen: false,
       inputValue: '',
       responses: [],
       sendingMessage: false,
@@ -78,6 +80,9 @@ export default {
   methods: {
     toggleMenu() {
       this.menuOpen = !this.menuOpen;
+    },
+    toggleProfileMenu() {
+      this.profileMenuOpen = !this.profileMenuOpen;
     },
     async sendMessage() {
       if (this.inputValue.trim() === '') {
@@ -241,8 +246,21 @@ export default {
     background-color: red;
     background-size: cover;
     border-radius: 40%;
+    cursor: pointer;
   }
-  
+
+  .menu {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #1f0020;
+    border: 3px solid var(--border);
+    border-radius: 30px;
+    padding: 20px;
+    z-index: 1000;
+  }
+
   .text-area {
     margin-top: 100px;
     justify-content: center;
