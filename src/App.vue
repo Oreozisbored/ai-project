@@ -15,8 +15,33 @@
         </select>
       </div>
       <div class="profile-picture" @click="toggleProfileMenu"></div>
-      <div v-if="profileMenuOpen" class="menu"></div>
-        <div class="">  </div>
+      <div v-if="profileMenuOpen" class="menu">
+        <div v-if="currentForm === 'login'">
+          <h2>Login</h2>
+          <form @submit.prevent="handleLogin">
+            <input type="text" v-model="loginData.username" placeholder="Username" required />
+            <input type="password" v-model="loginData.password" placeholder="Password" required />
+            <button type="submit">Login</button>
+            <p @click="switchForm('signup')">Don't have an account? Sign up</p>
+          </form>
+        </div>
+        <div v-if="currentForm === 'signup'">
+          <h2>Sign Up</h2>
+          <form @submit.prevent="handleSignup">
+            <input type="text" v-model="signupData.username" placeholder="Username" required />
+            <input type="password" v-model="signupData.password" placeholder="Password" required />
+            <input type="email" v-model="signupData.email" placeholder="Email" required />
+            <button type="submit">Sign Up</button>
+            <p @click="switchForm('login')">Already have an account? Login</p>
+          </form>
+        </div>
+        <div v-if="currentForm === 'profile'">
+          <h2>Profile Information</h2>
+          <p>Username: {{ profileData.username }}</p>
+          <p>Email: {{ profileData.email }}</p>
+          <button @click="handleLogout">Logout</button>
+        </div>
+      </div>
       <div class="text-area" ref="chatMessages">
         <div v-for="response in responses" :key="response.id" :class="isUserMessage(response.text) ? 'user-message' : 'ai-message'">
           <p>{{ response.text }}</p>
@@ -76,6 +101,20 @@ export default {
           threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
         },
       ],
+      currentForm: 'login',
+      loginData: {
+        username: '',
+        password: ''
+      },
+      signupData: {
+        username: '',
+        password: '',
+        email: ''
+      },
+      profileData: {
+        username: 'User123',
+        email: 'user@example.com'
+      }
     };
   },
   methods: {
@@ -84,6 +123,23 @@ export default {
     },
     toggleProfileMenu() {
       this.profileMenuOpen = !this.profileMenuOpen;
+    },
+    switchForm(form) {
+      this.currentForm = form;
+    },
+    handleLogin() {
+      // Handle login logic here
+      console.log('Login data:', this.loginData);
+      this.switchForm('profile');
+    },
+    handleSignup() {
+      // Handle signup logic here
+      console.log('Signup data:', this.signupData);
+      this.switchForm('profile');
+    },
+    handleLogout() {
+      // Handle logout logic here
+      this.switchForm('login');
     },
     async sendMessage() {
       if (this.inputValue.trim() === '') {
@@ -166,7 +222,7 @@ export default {
   }
 
   :root {
-    --border: #670060
+    --border: #670060;
   }
   
   .App {
@@ -262,6 +318,40 @@ export default {
     z-index: 1000;
     width: 70%;
     height: 70%;
+  }
+
+  .menu h2 {
+    margin-bottom: 20px;
+  }
+
+  .menu form {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .menu input {
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid var(--border);
+    background-color: #2a2a2a;
+    color: #c5a3ff;
+    border-radius: 5px;
+  }
+
+  .menu button {
+    padding: 10px;
+    background-color: #ab00b1;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .menu p {
+    margin-top: 10px;
+    cursor: pointer;
+    color: #ab00b1;
+    text-decoration: underline;
   }
 
   .text-area {

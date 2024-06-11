@@ -1,5 +1,5 @@
 <template>
-    <div id="login">
+    <div id="login-page">
       <div class="login-container">
         <div class="login-box">
           <h2 class="login-title">Login</h2>
@@ -15,7 +15,7 @@
   
   <script>
   export default {
-    name: 'Login',
+    name: 'Login-page',
     data() {
       return {
         username: '',
