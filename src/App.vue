@@ -15,7 +15,8 @@
         </select>
       </div>
       <div class="profile-picture" @click="toggleProfileMenu"></div>
-      <div v-if="profileMenuOpen" class="menu">Profile Menu Content</div>
+      <div v-if="profileMenuOpen" class="menu"></div>
+        <div class="">  </div>
       <div class="text-area" ref="chatMessages">
         <div v-for="response in responses" :key="response.id" :class="isUserMessage(response.text) ? 'user-message' : 'ai-message'">
           <p>{{ response.text }}</p>
@@ -259,12 +260,12 @@ export default {
     border-radius: 30px;
     padding: 20px;
     z-index: 1000;
-    width: 40%;
-    height: 40%;
+    width: 70%;
+    height: 70%;
   }
 
   .text-area {
-    margin-top: 100px;
+    margin-top: 50px;
     justify-content: center;
     color: #ffffff;
     overflow-y: auto;
