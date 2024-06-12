@@ -63,9 +63,21 @@
 </template>
 
 <script>
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, db } from './firebase'; // Import the Firebase auth and Firestore module
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile } from 'firebase/auth';
+import { initializeApp } from 'firebase/app';
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
+
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
 export default {
   name: 'App',
@@ -76,7 +88,33 @@ export default {
       inputValue: '',
       responses: [],
       sendingMessage: false,
+      genAI: null,
+      model: null,
       grades: [5, 6, 7, 8, 9, 10, 11, 12],
+      generationConfig: {
+        temperature: 1,
+        topP: 0.95,
+        topK: 64,
+        maxOutputTokens: 8192
+      },
+      safetySettings: [
+        {
+          category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+          threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
+        },
+        {
+          category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+          threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
+        },
+        {
+          category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+          threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
+        },
+        {
+          category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+          threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
+        },
+      ],
       currentForm: 'login',
       loginData: {
         email: '',
@@ -103,30 +141,27 @@ export default {
     switchForm(form) {
       this.currentForm = form;
     },
-    async handleLogin() {
-      try {
-        const userCredential = await signInWithEmailAndPassword(auth, this.loginData.email, this.loginData.password);
-        const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
-        if (userDoc.exists()) {
-          this.profileData = userDoc.data();
-        }
-        this.switchForm('profile');
-      } catch (error) {
-        console.error('Login error:', error);
-      }
-    },
     async handleSignup() {
+      const { fullName, email, password } = this.signupData;
       try {
-        const userCredential = await createUserWithEmailAndPassword(auth, this.signupData.email, this.signupData.password);
-        await setDoc(doc(db, "users", userCredential.user.uid), {
-          fullName: this.signupData.fullName,
-          email: this.signupData.email
-        });
-        this.profileData.fullName = this.signupData.fullName;
-        this.profileData.email = this.signupData.email;
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        await updateProfile(user, { displayName: fullName });
+        this.profileData = { fullName: user.displayName, email: user.email };
         this.switchForm('profile');
       } catch (error) {
         console.error('Signup error:', error);
+      }
+    },
+    async handleLogin() {
+      const { email, password } = this.loginData;
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        this.profileData = { fullName: user.displayName, email: user.email };
+        this.switchForm('profile');
+      } catch (error) {
+        console.error('Login error:', error);
       }
     },
     async handleLogout() {
@@ -151,8 +186,17 @@ export default {
       this.inputValue = '';
 
       try {
-        // Assuming you have some AI model setup here to send messages to
-        const apiResponse = { id: Date.now(), text: `Gemini: ${message}` }; // Replace with actual response from AI
+        const chatSession = this.model.startChat({
+          generationConfig: this.generationConfig,
+          safetySettings: this.safetySettings,
+          history: this.responses.map(response => ({
+            role: 'user',
+            parts: [{ text: response.text.slice(5) }] // Removing "You: " from the message
+          }))
+        });
+
+        const result = await chatSession.sendMessage(message);
+        const apiResponse = { id: Date.now(), text: `Gemini: ${await result.response.text()}` };
         this.responses.push(apiResponse);
       } catch (error) {
         console.error('Error:', error);
@@ -175,10 +219,176 @@ export default {
     }
   },
   async mounted() {
+    const apiKey = process.env.VUE_APP_GEMINI_API_KEY;
+    const modelInstruction = `FILLER`;
+    this.genAI = new GoogleGenerativeAI(apiKey);
+    this.model = this.genAI.getGenerativeModel({
+      model: "gemini-1.5-flash",
+      systemInstruction: modelInstruction,
+      history: this.responses.map(response => ({
+        role: 'user',
+        parts: [{ text: response.text.slice(5) }] // Removing "You: " from the message
+      }))
+    });
+
     this.scrollToBottom();
   }
 };
 </script>
+
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    background-color: #1e1e1e;
+    color: #c5a3ff;
+    font-family: Arial, sans-serif;
+  }
+  
+  #app {
+    height: 100vh;
+  }
+
+  :root {
+    --border: #670060;
+  }
+  
+  .App {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+    background-color: #1f0020;
+    color: #c5a3ff;
+    position: relative;
+  }
+  
+  .menu-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 10px;
+    z-index: 1;
+    transition: left 0.3s ease-in-out;
+  }
+  
+  .menu-bar.expanded {
+    left: 200px;
+  }
+  
+  .menu-button {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+  }
+  
+  .menu-line {
+    width: 100%;
+    height: 3px;
+    background-color: #c5a3ff;
+  }
+  
+  .expanded-content {
+    margin-top: 10px;
+    color: #c5a3ff;
+  }
+  
+  .profile-section {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+  }
+  
+  .profile-picture {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #c5a3ff;
+    cursor: pointer;
+  }
+  
+  .menu {
+    position: absolute;
+    top: 60px;
+    right: 10px;
+    background-color: #2c2c2c;
+    border: 1px solid var(--border);
+    padding: 10px;
+    border-radius: 5px;
+    width: 250px;
+  }
+  
+  .menu h2 {
+    color: #c5a3ff;
+  }
+  
+  .menu p {
+    cursor: pointer;
+    color: #c5a3ff;
+    text-decoration: underline;
+  }
+  
+  .text-area {
+    flex-grow: 1;
+    width: 100%;
+    overflow-y: auto;
+    padding: 10px;
+  }
+  
+  .user-message, .ai-message {
+    margin-bottom: 10px;
+  }
+  
+  .user-message p, .ai-message p {
+    padding: 10px;
+    border-radius: 10px;
+  }
+  
+  .user-message p {
+    background-color: #3b3b3b;
+  }
+  
+  .ai-message p {
+    background-color: #4b0082;
+  }
+  
+  .chat-input {
+    width: 100%;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    background-color: #1f0020;
+    border-top: 1px solid var(--border);
+  }
+  
+  .text-box {
+    width: 100%;
+    max-width: 800px;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    background-color: #2c2c2c;
+    color: #c5a3ff;
+  }
+
+  .grade-dropdown {
+    background-color: #4b0082;
+    color: #c5a3ff;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    outline: none;
+  }
+</style>
 
 <style>
   * {

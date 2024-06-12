@@ -3,13 +3,13 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: process.env.VUE_APP_API_KEY,
-  authDomain: process.env.VUE_APP_AUTH_DOMAIN,
-  projectId: process.env.VUE_APP_PROJECT_ID,
-  storageBucket: process.env.VUE_APP_STORAGE_BUCKET,
-  messagingSenderId: process.env.VUE_APP_MESSAGING_SENDER_ID,
-  appId: process.env.VUE_APP_APP_ID,
-  measurementId: process.env.VUE_APP_MEASUREMENT_ID
+  apiKey: "AIzaSyCDg3rEFIVLueBFCm3zDtuZQnM1B0_kLMo",
+  authDomain: "eeee-e75c9.firebaseapp.com",
+  projectId: "eeee-e75c9",
+  storageBucket: "eeee-e75c9.appspot.com",
+  messagingSenderId: "589198895448",
+  appId: "1:589198895448:web:7e45f45ad7bfefa1fc9d2d",
+  measurementId: "G-J0X59J3JNX"
 };
 
 const app = initializeApp(firebaseConfig);
