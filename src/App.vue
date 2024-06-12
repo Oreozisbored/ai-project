@@ -19,7 +19,7 @@
         <div v-if="currentForm === 'login'">
           <h2>Login</h2>
           <form @submit.prevent="handleLogin">
-            <input type="text" v-model="loginData.username" placeholder="Username" required />
+            <input type="email" v-model="loginData.email" placeholder="Email" required />
             <input type="password" v-model="loginData.password" placeholder="Password" required />
             <button type="submit">Login</button>
             <p @click="switchForm('signup')">Don't have an account? Sign up</p>
@@ -28,16 +28,16 @@
         <div v-if="currentForm === 'signup'">
           <h2>Sign Up</h2>
           <form @submit.prevent="handleSignup">
-            <input type="text" v-model="signupData.username" placeholder="Username" required />
-            <input type="password" v-model="signupData.password" placeholder="Password" required />
+            <input type="text" v-model="signupData.fullName" placeholder="Full Name" required />
             <input type="email" v-model="signupData.email" placeholder="Email" required />
+            <input type="password" v-model="signupData.password" placeholder="Password" required />
             <button type="submit">Sign Up</button>
             <p @click="switchForm('login')">Already have an account? Login</p>
           </form>
         </div>
         <div v-if="currentForm === 'profile'">
           <h2>Profile Information</h2>
-          <p>Username: {{ profileData.username }}</p>
+          <p>Full Name: {{ profileData.fullName }}</p>
           <p>Email: {{ profileData.email }}</p>
           <button @click="handleLogout">Logout</button>
         </div>
@@ -63,7 +63,9 @@
 </template>
 
 <script>
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { auth, db } from './firebase'; // Import the Firebase auth and Firestore module
 
 export default {
   name: 'App',
@@ -74,46 +76,20 @@ export default {
       inputValue: '',
       responses: [],
       sendingMessage: false,
-      genAI: null,
-      model: null,
       grades: [5, 6, 7, 8, 9, 10, 11, 12],
-      generationConfig: {
-        temperature: 1,
-        topP: 0.95,
-        topK: 64,
-        maxOutputTokens: 8192
-      },
-      safetySettings: [
-        {
-          category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-          threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
-        },
-        {
-          category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-          threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
-        },
-        {
-          category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-          threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
-        },
-        {
-          category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-          threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
-        },
-      ],
       currentForm: 'login',
       loginData: {
-        username: '',
+        email: '',
         password: ''
       },
       signupData: {
-        username: '',
-        password: '',
-        email: ''
+        fullName: '',
+        email: '',
+        password: ''
       },
       profileData: {
-        username: 'User123',
-        email: 'user@example.com'
+        fullName: '',
+        email: ''
       }
     };
   },
@@ -127,19 +103,40 @@ export default {
     switchForm(form) {
       this.currentForm = form;
     },
-    handleLogin() {
-      // Handle login logic here
-      console.log('Login data:', this.loginData);
-      this.switchForm('profile');
+    async handleLogin() {
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, this.loginData.email, this.loginData.password);
+        const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
+        if (userDoc.exists()) {
+          this.profileData = userDoc.data();
+        }
+        this.switchForm('profile');
+      } catch (error) {
+        console.error('Login error:', error);
+      }
     },
-    handleSignup() {
-      // Handle signup logic here
-      console.log('Signup data:', this.signupData);
-      this.switchForm('profile');
+    async handleSignup() {
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, this.signupData.email, this.signupData.password);
+        await setDoc(doc(db, "users", userCredential.user.uid), {
+          fullName: this.signupData.fullName,
+          email: this.signupData.email
+        });
+        this.profileData.fullName = this.signupData.fullName;
+        this.profileData.email = this.signupData.email;
+        this.switchForm('profile');
+      } catch (error) {
+        console.error('Signup error:', error);
+      }
     },
-    handleLogout() {
-      // Handle logout logic here
-      this.switchForm('login');
+    async handleLogout() {
+      try {
+        await signOut(auth);
+        this.profileData = { fullName: '', email: '' };
+        this.switchForm('login');
+      } catch (error) {
+        console.error('Logout error:', error);
+      }
     },
     async sendMessage() {
       if (this.inputValue.trim() === '') {
@@ -154,17 +151,8 @@ export default {
       this.inputValue = '';
 
       try {
-        const chatSession = this.model.startChat({
-          generationConfig: this.generationConfig,
-          safetySettings: this.safetySettings,
-          history: this.responses.map(response => ({
-            role: 'user',
-            parts: [{ text: response.text.slice(5) }] // Removing "You: " from the message
-          }))
-        });
-
-        const result = await chatSession.sendMessage(message);
-        const apiResponse = { id: Date.now(), text: `Gemini: ${await result.response.text()}` };
+        // Assuming you have some AI model setup here to send messages to
+        const apiResponse = { id: Date.now(), text: `Gemini: ${message}` }; // Replace with actual response from AI
         this.responses.push(apiResponse);
       } catch (error) {
         console.error('Error:', error);
@@ -187,18 +175,6 @@ export default {
     }
   },
   async mounted() {
-    const apiKey = process.env.VUE_APP_GEMINI_API_KEY;
-    const modelInstruction = `FILLER`;
-    this.genAI = new GoogleGenerativeAI(apiKey);
-    this.model = this.genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
-      systemInstruction: modelInstruction,
-      history: this.responses.map(response => ({
-        role: 'user',
-        parts: [{ text: response.text.slice(5) }] // Removing "You: " from the message
-      }))
-    });
-
     this.scrollToBottom();
   }
 };

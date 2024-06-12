@@ -1,5 +1,9 @@
 {
   "projects": {
-    "default": "ai-project-d5fcc"
-  }
+    "default": "eeee-e75c9",
+    "e": "eeee-e75c9"
+  },
+  "targets": {},
+  "etags": {},
+  "dataconnectEmulatorConfig": {}
 }
