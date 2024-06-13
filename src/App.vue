@@ -221,7 +221,8 @@ export default {
   },
   async mounted() {
     const apiKey = process.env.VUE_APP_GEMINI_API_KEY;
-    const modelInstruction = `FILLER`;
+    const modelInstruction = process.env.VUE_APP_PROMT;
+    console.log(modelInstruction)
     this.genAI = new GoogleGenerativeAI(apiKey);
     this.model = this.genAI.getGenerativeModel({
       model: "gemini-1.5-flash",
@@ -280,7 +281,6 @@ export default {
   }
   
   .menu-bar.expanded {
-    left: 200px;
   }
   
   .menu-button {
@@ -293,8 +293,11 @@ export default {
   }
   
   .menu-line {
+    right: 0px;
+    left: 0px;
     width: 100%;
-    height: 3px;
+    height: 4px;
+    z-index: 69696969696969;
     background-color: #c5a3ff;
   }
   
