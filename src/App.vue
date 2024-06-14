@@ -9,13 +9,14 @@
         </div>
         <div v-if="menuOpen" class="expanded-content">Made by Wilson Li :)</div>
       </div>
+      <div>THIS IS NOT A SECURE STORAGE YET, CHAT HISTORIES ARE KINDA PUBLIC</div>
       <div class="profile-section">
         <select class="grade-dropdown">
           <option v-for="grade in grades" :key="grade" :value="grade">{{ grade }}th Grade</option>
         </select>
       </div>
       <div class="profile-picture" @click="toggleProfileMenu"></div>
-      <div v-if="profileMenuOpen" class="menu">
+      <div v-if="profileMenuOpen" class="profile-menu">
         <div v-if="currentForm === 'login'">
           <h2>Login</h2>
           <form @submit.prevent="handleLogin">
@@ -65,7 +66,9 @@
 <script>
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile } from 'firebase/auth';
 import { initializeApp } from 'firebase/app';
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
+import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage';
+import Cookies from 'js-cookie';
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 
 const firebaseConfig = {
   apiKey: process.env.VUE_APP_API_KEY,
@@ -79,6 +82,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const storage = getStorage(app);
 
 export default {
   name: 'App',
@@ -129,7 +133,8 @@ export default {
       profileData: {
         fullName: '',
         email: ''
-      }
+      },
+      errorMessage: ''
     };
   },
   methods: {
@@ -141,6 +146,7 @@ export default {
     },
     switchForm(form) {
       this.currentForm = form;
+      this.errorMessage = '';
     },
     async handleSignup() {
       const { fullName, email, password } = this.signupData;
@@ -151,7 +157,11 @@ export default {
         this.profileData = { fullName: user.displayName, email: user.email };
         this.switchForm('profile');
       } catch (error) {
-        console.error('Signup error:', error);
+        if (error.code === 'auth/email-already-in-use') {
+          this.errorMessage = 'The email address is already in use.';
+        } else {
+          this.errorMessage = 'Signup error. Please try again.';
+        }
       }
     },
     async handleLogin() {
@@ -161,8 +171,9 @@ export default {
         const user = userCredential.user;
         this.profileData = { fullName: user.displayName, email: user.email };
         this.switchForm('profile');
+        this.loadChatHistory(user.uid);
       } catch (error) {
-        console.error('Login error:', error);
+        this.errorMessage = 'Login error. Please try again.';
       }
     },
     async handleLogout() {
@@ -208,6 +219,8 @@ export default {
           this.scrollToBottom();
         });
       }
+
+      this.saveChatHistory();
     },
     scrollToBottom() {
       this.$nextTick(() => {
@@ -217,6 +230,37 @@ export default {
     },
     isUserMessage(text) {
       return text.startsWith('You:');
+    },
+    async saveChatHistory() {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const chatHistory = JSON.stringify(this.responses);
+      Cookies.set('chatHistory', chatHistory);
+
+      const storageRef = ref(storage, `chats/${user.uid}.json`);
+      try {
+        await uploadString(storageRef, chatHistory);
+      } catch (error) {
+        console.error('Error saving chat history:', error);
+      }
+    },
+    async loadChatHistory(userId) {
+      const chatHistory = Cookies.get('chatHistory');
+      if (chatHistory) {
+        this.responses = JSON.parse(chatHistory);
+        return;
+      }
+
+      const storageRef = ref(storage, `chats/${userId}.json`);
+      try {
+        const url = await getDownloadURL(storageRef);
+        const response = await fetch(url);
+        const data = await response.json();
+        this.responses = data;
+      } catch (error) {
+        console.error('Error loading chat history:', error);
+      }
     }
   },
   async mounted() {
@@ -235,362 +279,220 @@ export default {
 
     this.scrollToBottom();
   }
+
 };
 </script>
 
 <style>
   * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-  
-  body {
-    background-color: #1e1e1e;
-    color: #c5a3ff;
-    font-family: Arial, sans-serif;
-  }
-  
-  #app {
-    height: 100vh;
-  }
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-  :root {
-    --border: #670060;
-  }
-  
-  .App {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    width: 100%;
-    background-color: #1f0020;
-    color: #c5a3ff;
-    position: relative;
-  }
-  
-  .menu-bar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    padding: 10px;
-    z-index: 1;
-    transition: left 0.3s ease-in-out;
-  }
-  
-  .menu-bar.expanded {
-  }
-  
-  .menu-button {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    width: 25px;
-    height: 25px;
-    cursor: pointer;
-  }
-  
-  .menu-line {
-    right: 0px;
-    left: 0px;
-    width: 100%;
-    height: 4px;
-    z-index: 69696969696969;
-    background-color: #c5a3ff;
-  }
-  
-  .expanded-content {
-    margin-top: 10px;
-    color: #c5a3ff;
-  }
-  
-  .profile-section {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-  }
-  
-  .profile-picture {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: #c5a3ff;
-    cursor: pointer;
-  }
-  
-  .menu {
-    position: absolute;
-    top: 60px;
-    right: 10px;
-    background-color: #2c2c2c;
-    border: 1px solid var(--border);
-    padding: 10px;
-    border-radius: 5px;
-    width: 250px;
-  }
-  
-  .menu h2 {
-    color: #c5a3ff;
-  }
-  
-  .menu p {
-    cursor: pointer;
-    color: #c5a3ff;
-    text-decoration: underline;
-  }
-  
-  .text-area {
-    flex-grow: 1;
-    width: 100%;
-    overflow-y: auto;
-    padding: 10px;
-  }
-  
-  .user-message, .ai-message {
-    margin-bottom: 10px;
-  }
-  
-  .user-message p, .ai-message p {
-    padding: 10px;
-    border-radius: 10px;
-  }
-  
-  .user-message p {
-    background-color: #3b3b3b;
-  }
-  
-  .ai-message p {
-    background-color: #4b0082;
-  }
-  
-  .chat-input {
-    width: 100%;
-    padding: 10px;
-    display: flex;
-    justify-content: center;
-    background-color: #1f0020;
-    border-top: 1px solid var(--border);
-  }
-  
-  .text-box {
-    width: 100%;
-    max-width: 800px;
-    padding: 10px;
-    border-radius: 10px;
-    border: none;
-    background-color: #2c2c2c;
-    color: #c5a3ff;
-  }
+body {
+  background-color: #1e1e1e;
+  color: #c5a3ff;
+  font-family: Arial, sans-serif;
+}
 
-  .grade-dropdown {
-    background-color: #4b0082;
-    color: #c5a3ff;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 5px;
-    outline: none;
-  }
-</style>
+#app {
+  height: 100vh;
+}
 
-<style>
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-  
-  body {
-    background-color: #1e1e1e;
-    color: #c5a3ff;
-    font-family: Arial, sans-serif;
-  }
-  
-  #app {
-    height: 100vh;
-  }
+:root {
+  --border: #670060;
+}
 
-  :root {
-    --border: #670060;
-  }
-  
-  .App {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    width: 100%;
-    background-color: #1f0020;
-    color: #c5a3ff;
-    position: relative;
-  }
-  
-  .menu-bar {
-    position: fixed;
-    height: 100%;
-    width: 2.5%;
-    left: 0;
-    top: 0;
-    background-color: #400042;
-    transition: width 0.3s ease;
-  }
+.App {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  background-color: #1f0020;
+  color: #c5a3ff;
+  position: relative;
+}
 
-  .menu-bar.expanded {
-    width: 10%;
-  }
+.menu-bar {
+  position: fixed;
+  height: 100%;
+  width: 2.5%;
+  left: 0;
+  top: 0;
+  background-color: #400042;
+  transition: width 0.3s ease;
+}
 
-  .expanded-content {
-    position: absolute;
-    top: 2%;
-  }
+.menu-bar.expanded {
+  width: 10%;
+}
 
-  .menu-button {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    cursor: pointer;
-    z-index: 10;
-  }
-  
-  .menu-line {
-    width: 30px;
-    height: 3px;
-    background-color: #ab00b1;
-    margin: 5px 0;
-  }
-  
-  .expanded-content {
-    padding: 20px;
-    color: #c5a3ff;
-  }
+.menu-button {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  cursor: pointer;
+  z-index: 10;
+}
 
-  .profile-section {
-    position: absolute;
-    top: 10px;
-    right: 3.25%;
-    display: flex;
-    align-items: center;
-  }
+.menu-line {
+  width: 30px;
+  height: 3px;
+  background-color: #ab00b1;
+  margin: 5px 0;
+}
 
-  .grade-dropdown {
-    margin-right: 10px;
-    padding: 5px;
-    border: 1px solid var(--border);
-    background-color: #2a2a2a;
-    color: #c5a3ff;
-    border-radius: 5px;
-  }
+.expanded-content {
+  position: absolute;
+  top: 4%;
+  left: 12px; /* Ensure content stays within the expanded menu */
+}
 
-  .profile-picture {
-    position: absolute;
-    width: 37px;
-    height: 37px;
-    top: 5px;
-    right: .75%;
-    display: inline-block;
-    background-color: red;
-    background-size: cover;
-    border-radius: 40%;
-    cursor: pointer;
-  }
+.expanded-content .chat-history {
+  margin-top: 20px;
+}
 
-  .menu {
-    position: fixed;
-    top: 40%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: #1f0020;
-    border: 3px solid var(--border);
-    border-radius: 30px;
-    padding: 20px;
-    z-index: 1000;
-    width: 70%;
-    height: 70%;
-  }
+.expanded-content .chat-history h3 {
+  color: #c5a3ff;
+}
 
-  .menu h2 {
-    margin-bottom: 20px;
-  }
+.expanded-content .chat-history ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
 
-  .menu form {
-    display: flex;
-    flex-direction: column;
-  }
+.expanded-content .chat-history li {
+  padding: 5px 0;
+  color: #ffffff;
+}
 
-  .menu input {
-    margin-bottom: 10px;
-    padding: 10px;
-    border: 1px solid var(--border);
-    background-color: #2a2a2a;
-    color: #c5a3ff;
-    border-radius: 5px;
-  }
+.profile-section {
+  position: absolute;
+  top: 10px;
+  right: 3.25%;
+  display: flex;
+  align-items: center;
+}
 
-  .menu button {
-    padding: 10px;
-    background-color: #ab00b1;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
+.grade-dropdown {
+  margin-right: 10px;
+  padding: 5px;
+  border: 1px solid var(--border);
+  background-color: #2a2a2a;
+  color: #c5a3ff;
+  border-radius: 5px;
+}
 
-  .menu p {
-    margin-top: 10px;
-    cursor: pointer;
-    color: #ab00b1;
-    text-decoration: underline;
-  }
+.profile-picture {
+  position: fixed;
+  right: 15px;
+  top: 10px;
+  width: 37px;
+  height: 37px;
+  background-color: red;
+  background-size: cover;
+  border-radius: 50%;
+  cursor: pointer;
+}
 
-  .text-area {
-    margin-top: 50px;
-    justify-content: center;
-    color: #ffffff;
-    overflow-y: auto;
-    height: calc(100vh - 160px); /* Adjust according to header/footer height */
-    width: 95%;
-    right: 2.5%;
-    padding: 20px;
-    box-sizing: border-box;
-  }
-  
-  .user-message p, .ai-message p {
-    padding: 10px;
-    border-radius: 10px;
-    margin-bottom: 25px;
-    border: 3px solid var(--border);
-  }
-  
-  .user-message p {
-    background-color: #2a2a2a;
-    text-align: right;
-  }
-  
-  .ai-message p {
-    background-color: #3a3a3a;
-    text-align: left;
-  }
-  
-  .text-box {
-    width: 80%;
-    height: 40px;
-    border: 2px solid var(--border);
-    border-radius: 20px;
-    background-color: #2a2a2a;
-    color: #c5a3ff;
-    padding: 10px 20px;
-    box-sizing: border-box;
-    margin-top: 20px;
-    font-size: 16px;
-  }
-  
-  .chat-input {
-    position: fixed;
-    bottom: 20px;
-    left: 0;
-    width: 100%;
-    text-align: center;
-  }
+.profile-menu {
+  position: fixed;
+  top: 30%;
+  background-color: #2c2c2c;
+  border: 1px solid var(--border);
+  padding: 10px;
+  border-radius: 5px;
+  width: 40%;
+}
+
+.profile-menu h2 {
+  margin-bottom: 20px;
+  color: #c5a3ff;
+}
+
+.profile-menu form {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-menu input {
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  background-color: #2a2a2a;
+  color: #c5a3ff;
+  border-radius: 5px;
+}
+
+.profile-menu button {
+  padding: 10px;
+  background-color: #ab00b1;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.profile-menu p {
+  margin-top: 10px;
+  cursor: pointer;
+  color: #ab00b1;
+  text-decoration: underline;
+}
+
+.text-area {
+  margin-top: 50px;
+  justify-content: center;
+  color: #ffffff;
+  overflow-y: auto;
+  height: calc(100vh - 160px); /* Adjust according to header/footer height */
+  width: 95%;
+  top: 5%;
+  right: 2.5%;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.user-message p,
+.ai-message p {
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 25px;
+  border: 3px solid var(--border);
+}
+
+.user-message p {
+  background-color: #2a2a2a;
+  text-align: right;
+}
+
+.ai-message p {
+  background-color: #3a3a3a;
+  text-align: left;
+}
+
+.text-box {
+  width: 80%;
+  height: 40px;
+  border: 2px solid var(--border);
+  border-radius: 20px;
+  background-color: #2a2a2a;
+  color: #c5a3ff;
+  padding: 10px 20px;
+  box-sizing: border-box;
+  margin-top: 20px;
+  font-size: 16px;
+}
+
+.chat-input {
+  position: fixed;
+  bottom: 20px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+}
 </style>
