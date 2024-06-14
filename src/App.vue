@@ -9,7 +9,7 @@
         </div>
         <div v-if="menuOpen" class="expanded-content">Made by Wilson Li :)</div>
       </div>
-      <div>THIS IS NOT A SECURE STORAGE YET, CHAT HISTORIES ARE KINDA PUBLIC</div>
+      <div>THIS IS NOT A SECURE STORAGE YET, CHAT HISTORIES ARE KINDA PUBLIC, ITS WIP</div>
       <div class="profile-section">
         <select class="grade-dropdown">
           <option v-for="grade in grades" :key="grade" :value="grade">{{ grade }}th Grade</option>
