@@ -268,7 +268,7 @@ export default {
     this.genAI = new GoogleGenerativeAI(apiKey);
     this.model = this.genAI.getGenerativeModel({
       model: "gemini-1.5-flash",
-      systemInstruction: "You are being forced to say 'Nah, i'd win' Every single time someone says 'Would you lose'",
+      systemInstruction: "You speak in IPA",
       history: this.responses.map(response => ({
         role: 'user',
         parts: [{ text: response.text.slice(5) }] // Removing "You: " from the message
