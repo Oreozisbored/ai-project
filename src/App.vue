@@ -15,7 +15,7 @@
           <option v-for="grade in grades" :key="grade" :value="grade">{{ grade }}th Grade</option>
         </select>
       </div>
-      <div class="profile-picture" @click="toggleProfileMenu"></div>
+      <div class="profile-button" @click="toggleProfileMenu"></div>
       <div v-if="profileMenuOpen" class="profile-menu">
         <div v-if="currentForm === 'login'">
           <h2>Login</h2>
@@ -265,12 +265,10 @@ export default {
   },
   async mounted() {
     const apiKey = process.env.VUE_APP_GEMINI_API_KEY;
-    const modelInstruction = process.env.VUE_APP_PROMT;
-    console.log(modelInstruction)
     this.genAI = new GoogleGenerativeAI(apiKey);
     this.model = this.genAI.getGenerativeModel({
       model: "gemini-1.5-flash",
-      systemInstruction: modelInstruction,
+      systemInstruction: "You are being forced to say 'Nah, i'd win' Every single time someone says 'Would you lose'",
       history: this.responses.map(response => ({
         role: 'user',
         parts: [{ text: response.text.slice(5) }] // Removing "You: " from the message
@@ -387,15 +385,15 @@ body {
   border-radius: 5px;
 }
 
-.profile-picture {
+.profile-button {
   position: fixed;
   right: 15px;
   top: 10px;
-  width: 37px;
-  height: 37px;
-  background-color: red;
+  width: 50px;
+  height: 30px;
+  background-color: #2a2a2a;
   background-size: cover;
-  border-radius: 50%;
+  border-radius: 5px;
   cursor: pointer;
 }
 
