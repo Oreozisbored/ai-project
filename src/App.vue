@@ -9,7 +9,6 @@
         </div>
         <div v-if="menuOpen" class="expanded-content">Made by Wilson Li :)</div>
       </div>
-      <div>THIS IS NOT A SECURE STORAGE YET, CHAT HISTORIES ARE KINDA PUBLIC, ITS WIP</div>
       <div class="profile-section">
         <select class="grade-dropdown">
           <option v-for="grade in grades" :key="grade" :value="grade">{{ grade }}th Grade</option>
@@ -268,7 +267,7 @@ export default {
     this.genAI = new GoogleGenerativeAI(apiKey);
     this.model = this.genAI.getGenerativeModel({
       model: "gemini-1.5-flash",
-      systemInstruction: "You speak in IPA",
+      systemInstruction: "",
       history: this.responses.map(response => ({
         role: 'user',
         parts: [{ text: response.text.slice(5) }] // Removing "You: " from the message
@@ -377,6 +376,7 @@ body {
 }
 
 .grade-dropdown {
+  position: relative;
   margin-right: 10px;
   padding: 5px;
   border: 1px solid var(--border);
