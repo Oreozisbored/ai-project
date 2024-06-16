@@ -14,7 +14,7 @@
           <option v-for="grade in grades" :key="grade" :value="grade">{{ grade }}th Grade</option>
         </select>
       </div>
-      <div class="profile-button" @click="toggleProfileMenu"></div>
+      <div class="profile-button" @click="toggleProfileMenu">Profile</div>
       <div v-if="profileMenuOpen" class="profile-menu">
         <div v-if="currentForm === 'login'">
           <h2>Login</h2>
@@ -377,7 +377,8 @@ body {
 
 .grade-dropdown {
   position: relative;
-  margin-right: 10px;
+  margin-right: 5px;
+  right: 25px;
   padding: 5px;
   border: 1px solid var(--border);
   background-color: #2a2a2a;
@@ -389,12 +390,15 @@ body {
   position: fixed;
   right: 15px;
   top: 10px;
-  width: 50px;
+  width: 75px;
   height: 30px;
   background-color: #2a2a2a;
   background-size: cover;
   border-radius: 5px;
   cursor: pointer;
+  text-align: center;
+  padding: 5px;
+  border: 1px solid var(--border);
 }
 
 .profile-menu {
