@@ -66,6 +66,7 @@
 </template>
 
 <script>
+import { SpeedInsights } from "@vercel/speed-insights/vue";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile } from 'firebase/auth';
 import { initializeApp } from 'firebase/app';
 import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage';
@@ -88,6 +89,7 @@ const storage = getStorage(app);
 
 export default {
   name: 'App',
+  SpeedInsights,
   data() {
     return {
       menuOpen: false,
