@@ -16,6 +16,9 @@
       </div>
       <div class="profile-button" @click="toggleProfileMenu">Profile</div>
       <div v-if="profileMenuOpen" class="profile-menu">
+        <div class = "profile-menu-close" @click = "toggleProfileMenu"></div>
+          <div class = "profile-menu-bar1"></div>
+          <div class = "profile-menu-bar2"></div>
         <div v-if="currentForm === 'login'">
           <h2>Login</h2>
           <form @submit.prevent="handleLogin">
@@ -496,5 +499,25 @@ body {
   left: 0;
   width: 100%;
   text-align: center;
+}
+
+.profile-menu-close {
+  position: relative;
+  right: -725px;
+  top: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 100%;
+  background-color: #aa0000;
+}
+
+.profile-menu-bar1 {
+  position: relative;
+  width: 2px;
+  height: 7px;
+  background-color: #ff0000;
+  border-radius: 1px;
+  right: 500px;
+  left: 2px;
 }
 </style>
